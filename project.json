@@ -1,0 +1,12 @@
+{
+    "name": "verifactu-api-php",
+    "description": "Sistema de facturas Veri*Factu con envío a la AEAT",
+    "version": "1.0.0",
+    "author": {
+        "name": "Eduardo Ruiz",
+        "email": "eruiz@dataclick.es"
+    },
+    "keywords": [
+        "verifactu", "aeat", "Agencia Tributaria", "Facturación electrónica", "Sistema de emisión de facturas verificables", "Sistemas Informáticos de Facturación"
+    ]
+}
