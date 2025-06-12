@@ -1,6 +1,6 @@
 <?php
 //
-// =============== Veri*Factu API 1.0.0 ===============
+// =============== Veri*Factu API 1.0.1 ===============
 //
 // Copyright (c) 2025 Eduardo Ruiz <eruiz@dataclick.es>
 // https://github.com/EduardoRuizM/verifactu-api-php
@@ -68,13 +68,14 @@ if (!($company_id = intval(getKey($path, 3))) || !($company = $db->query('SELECT
 
 $company = $company[0];
 $path = implode('/', array_slice($path, 4));
+$timezone = isset($timezone) ? $timezone : 'Europe/Madrid';
 
 if (apiPath('GET', 'query'))
 	okResponse($verifactu->Consulta($company, intval(getKey($_GET, 'year')), intval(getKey($_GET, 'month'))));
 
 if (apiPath('GET', 'invoices')) {
 
-	$invoices = $db->query('SELECT * FROM invoices WHERE company_id = ? ORDER BY dt', [$company_id]);
+	$invoices = $db->query("SELECT *, CONVERT_TZ(verifactu_dt, 'UTC', ?) AS verifactu_dt_local FROM invoices WHERE company_id = ? ORDER BY dt", [$timezone, $company_id]);
 	$ret = array('data' => $invoices);
 	foreach ($ret['data'] as &$invoice)
 		$invoice['number_format'] = numFmt($company, $invoice);
@@ -84,7 +85,7 @@ if (apiPath('GET', 'invoices')) {
 
 if (($vars = apiPath('GET', 'invoices/:id'))) {
 
-	$invoice = $db->query('SELECT * FROM invoices WHERE id = ? AND company_id = ?', [intval(getKey($vars, 'id')), $company_id]);
+	$invoice = $db->query("SELECT *, CONVERT_TZ(verifactu_dt, 'UTC', ?) AS verifactu_dt_local FROM invoices WHERE id = ? AND company_id = ?", [$timezone, intval(getKey($vars, 'id')), $company_id]);
 	if ($invoice) {
 
 		$invoice = $invoice[0];

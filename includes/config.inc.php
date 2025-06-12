@@ -1,6 +1,6 @@
 <?php
 //
-// =============== Veri*Factu API 1.0.0 ===============
+// =============== Veri*Factu API 1.0.1 ===============
 //
 // Copyright (c) 2025 Eduardo Ruiz <eruiz@dataclick.es>
 // https://github.com/EduardoRuizM/verifactu-api-php
@@ -11,6 +11,7 @@ $mysql_port = 3306;
 $mysql_user = '';
 $mysql_password = '';
 $mysql_database = '';
+$timezone = 'Europe/Madrid';
 
 // Certificado PKCS#12 (FNMT)
 $cert_file = '.p12';
