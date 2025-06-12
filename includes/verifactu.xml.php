@@ -1,6 +1,6 @@
 <?php
 //
-// =============== Veri*Factu API 1.0.0 ===============
+// =============== Veri*Factu API 1.0.1 ===============
 //
 // Copyright (c) 2025 Eduardo Ruiz <eruiz@dataclick.es>
 // https://github.com/EduardoRuizM/verifactu-api-php
@@ -75,7 +75,8 @@ class verifactuXML {
 
 			return strtoupper(hash('sha256', 'IDEmisorFactura=' . $this->cod($company['vat_id']) . '&NumSerieFactura=' . numFmt($company, $invoice) .
 						'&FechaExpedicionFactura=' . $this->dt($invoice) . '&TipoFactura=' . $invoice['verifactu_type'] .
-						'&CuotaTotal=' . $invoice['tvat'] . '&ImporteTotal=' . $invoice['total'] . '&Huella=' . $last_fp . '&FechaHoraHusoGenRegistro=' . $dt));
+						'&CuotaTotal=' . number_format($invoice['tvat'], 2) . '&ImporteTotal=' . number_format($invoice['total'], 2) .
+						'&Huella=' . $last_fp . '&FechaHoraHusoGenRegistro=' . $dt));
 		}
 	}
 
@@ -295,6 +296,8 @@ class verifactuXML {
 				$tiempoEsperaEnvio = ($v = $xml->xpath('//tikR:TiempoEsperaEnvio')) ? (string) $v[0] : 0;
 				$timestampPresentacion = ($v = $xml->xpath('//tikR:DatosPresentacion/tik:TimestampPresentacion')) ? (string) $v[0] : 0;
 
+				$dtutc = (new DateTime(($timestampPresentacion) ? $timestampPresentacion : $dt))->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+
 				$this->db->query('UPDATE companies SET next_send = DATE_ADD(NOW(), INTERVAL ? SECOND) WHERE id = ?', [$tiempoEsperaEnvio, $company['id']]);
 
 				$lines = $xml->xpath('//tikR:RespuestaLinea');
@@ -308,7 +311,7 @@ class verifactuXML {
 
 					$invoice = $invoices[$ikeys[$numSerieFactura]];
 
-					$sql = 'UPDATE invoices SET verifactu_dt = "' . (($timestampPresentacion) ? $timestampPresentacion : $dt) . '", verifactu_err = ' . intval($codError);
+					$sql = 'UPDATE invoices SET verifactu_dt = "' . $dtutc . '", verifactu_err = ' . intval($codError);
 					if ($csv)
 						$sql.= ', verifactu_csv = "' . addslashes(trim($invoice['verifactu_csv'] . "\n" . $csv)) . '"';
 
