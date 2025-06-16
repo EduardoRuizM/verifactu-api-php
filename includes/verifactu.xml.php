@@ -75,7 +75,7 @@ class verifactuXML {
 
 			return strtoupper(hash('sha256', 'IDEmisorFactura=' . $this->cod($company['vat_id']) . '&NumSerieFactura=' . numFmt($company, $invoice) .
 						'&FechaExpedicionFactura=' . $this->dt($invoice) . '&TipoFactura=' . $invoice['verifactu_type'] .
-						'&CuotaTotal=' . number_format($invoice['tvat'], 2) . '&ImporteTotal=' . number_format($invoice['total'], 2) .
+						'&CuotaTotal=' . $this->cur($invoice['tvat']) . '&ImporteTotal=' . $this->cur($invoice['total']) .
 						'&Huella=' . $last_fp . '&FechaHoraHusoGenRegistro=' . $dt));
 		}
 	}
