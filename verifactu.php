@@ -1,6 +1,6 @@
 <?php
 //
-// =============== Veri*Factu API 1.0.1 ===============
+// =============== Veri*Factu API 1.0.2 ===============
 //
 // Copyright (c) 2025 Eduardo Ruiz <eruiz@dataclick.es>
 // https://github.com/EduardoRuizM/verifactu-api-php
@@ -203,8 +203,8 @@ if (($vars = apiPath('POST', 'invoices/:id/rect'))) {
 	$invoices = $db->query('SELECT * FROM invoices WHERE id IN(?) AND company_id = ?', [$id, $company_id]);
 	foreach ($invoices as $invoice) {
 
-		if (!($invoice['verifactu_type'] == 'F1' || $invoice['verifactu_type'] == 'F2') || $invoice['invoice_ref_id'] || $invoice['voided'])
-			errResponse(401, 'Not type F1/F2, already referenced or voided: ' . numFmt($company, $invoice));
+		if (!($invoice['verifactu_type'] == 'F1' || $invoice['verifactu_type'] == 'F2' || $invoice['verifactu_type'] == 'F3') || $invoice['invoice_ref_id'] || $invoice['voided'])
+			errResponse(401, 'Not type F1/F2/F3, already referenced or voided: ' . numFmt($company, $invoice));
 	}
 
 	if ($invoices) {
@@ -224,8 +224,8 @@ if (($vars = apiPath('POST', 'invoices/:id/rect2'))) {
 	$invoices = $db->query('SELECT * FROM invoices WHERE id IN(?) AND company_id = ?', [$id, $company_id]);
 	foreach ($invoices as $invoice) {
 
-		if ($invoice['verifactu_type'] != 'F1' || $invoice['invoice_ref_id'] || $invoice['voided'])
-			errResponse(401, 'Not type F1, already referenced or voided: ' . numFmt($company, $invoice));
+		if (!($invoice['verifactu_type'] == 'F1' || $invoice['verifactu_type'] == 'F3') || $invoice['invoice_ref_id'] || $invoice['voided'])
+			errResponse(401, 'Not type F1/F3, already referenced or voided: ' . numFmt($company, $invoice));
 	}
 
 	if ($invoices) {
@@ -245,8 +245,8 @@ if (($vars = apiPath('POST', 'invoices/:id/rectsust'))) {
 	$invoices = $db->query('SELECT * FROM invoices WHERE id IN(?) AND company_id = ?', [$id, $company_id]);
 	foreach ($invoices as $invoice) {
 
-		if (!($invoice['verifactu_type'] == 'F1' || $invoice['verifactu_type'] == 'F2') || $invoice['invoice_ref_id'] || $invoice['voided'])
-			errResponse(401, 'Not type F1/F2, already referenced or voided: ' . numFmt($company, $invoice));
+		if ($invoice['verifactu_type'] == 'R2' || $invoice['invoice_ref_id'] || $invoice['voided'])
+			errResponse(401, 'Not type F1/F2/F3/R1/R5, already referenced or voided: ' . numFmt($company, $invoice));
 	}
 
 	if ($invoices) {
