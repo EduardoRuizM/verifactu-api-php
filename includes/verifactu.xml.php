@@ -1,6 +1,6 @@
 <?php
 //
-// =============== Veri*Factu API 1.0.2 ===============
+// =============== Veri*Factu API 1.0.3 ===============
 //
 // Copyright (c) 2025 Eduardo Ruiz <eruiz@dataclick.es>
 // https://github.com/EduardoRuizM/verifactu-api-php
@@ -119,15 +119,20 @@ class verifactuXML {
 
 			if ($invoice['verifactu_stype'] == 'S') {
 
+				$bi_total = 0.0;
+				$tvat_total = 0.0;
 				foreach ($rinvoices as $rinvoice) {
 
 					$lines = $this->db->query('SELECT vat, SUM(bi) AS bi, SUM(tvat) AS tvat FROM invoice_lines WHERE invoice_id = ? GROUP BY vat', [$rinvoice['id']]);
 					foreach ($lines as $line) {
 
-						$xml.=	'<ImporteRectificacion><BaseRectificada>' . $this->cur($line['bi']) . '</BaseRectificada>' .
-							'<CuotaRectificada>' . $this->cur($line['tvat']) . '</CuotaRectificada></ImporteRectificacion>';
+						$bi_total+= floatval($line['bi']);
+						$tvat_total+= floatval($line['tvat']);
 					}
 				}
+
+				$xml.=	'<ImporteRectificacion><BaseRectificada>' . $this->cur($bi_total) . '</BaseRectificada>' .
+					'<CuotaRectificada>' . $this->cur($tvat_total) . '</CuotaRectificada></ImporteRectificacion>';
 			}
 		}
 
