@@ -1,6 +1,6 @@
 <?php
 //
-// =============== Veri*Factu API 1.0.3 ===============
+// =============== Veri*Factu API 1.0.4 ===============
 //
 // Copyright (c) 2025 Eduardo Ruiz <eruiz@dataclick.es>
 // https://github.com/EduardoRuizM/verifactu-api-php
@@ -57,7 +57,7 @@ class verifactuXML {
 	// Última factura enviada a la AEAT
 	function LastInvoice(&$company) {
 
-		$invoice = $this->db->query('SELECT * FROM invoices WHERE company_id = ? AND fingerprint IS NOT NULL ORDER BY verifactu_dt DESC', [$company['id']]);
+		$invoice = $this->db->query('SELECT * FROM invoices WHERE company_id = ? AND fingerprint IS NOT NULL ORDER BY verifactu_dt DESC, id DESC', [$company['id']]);
 		return ($invoice && count($invoice)) ? $invoice[0] : null;
 	}
 
