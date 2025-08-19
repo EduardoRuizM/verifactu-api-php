@@ -1,6 +1,6 @@
 <?php
 //
-// =============== Veri*Factu API 1.0.4 ===============
+// =============== Veri*Factu API 1.0.5 ===============
 //
 // Copyright (c) 2025 Eduardo Ruiz <eruiz@dataclick.es>
 // https://github.com/EduardoRuizM/verifactu-api-php
@@ -80,7 +80,7 @@ class verifactuXML {
 		}
 	}
 
-	function RegistroAlta(&$company, &$invoice, &$last, $dt) {
+	function RegistroAlta(&$company, &$invoice, $last, $dt) {
 
 		if (!($descr = $invoice['comments'])) {
 
@@ -171,7 +171,7 @@ class verifactuXML {
 
 		$xml.=	'<Encadenamiento>' .
 			(($last) ?
-			  '<RegistroAnterior><IDEmisorFactura>' . $this->cod($company['vat_id']) . '</IDEmisorFactura><NumSerieFactura>' . numFmt($company, $last) .
+			  '<RegistroAnterior><IDEmisorFactura>' . $this->cod($company['vat_id']) . '</IDEmisorFactura><NumSerieFactura>' . $last['numFmt'] .
 				'</NumSerieFactura><FechaExpedicionFactura>' . $this->dt($last) . '</FechaExpedicionFactura><Huella>' . $last['fingerprint'] .
 				'</Huella></RegistroAnterior>'
 			:
@@ -182,7 +182,7 @@ class verifactuXML {
 		return $xml;
 	}
 
-	function RegistroAnulacion(&$company, &$invoice, &$last, $dt) {
+	function RegistroAnulacion(&$company, &$invoice, $last, $dt) {
 
 		$xml = '<sum:RegistroFactura>
                           <RegistroAnulacion>
@@ -196,7 +196,7 @@ class verifactuXML {
 
 		$xml.=	'<Encadenamiento>' .
 			(($last) ?
-			  '<RegistroAnterior><IDEmisorFactura>' . $this->cod($company['vat_id']) . '</IDEmisorFactura><NumSerieFactura>' . numFmt($company, $last) .
+			  '<RegistroAnterior><IDEmisorFactura>' . $this->cod($company['vat_id']) . '</IDEmisorFactura><NumSerieFactura>' . $last['numFmt'] .
 				'</NumSerieFactura><FechaExpedicionFactura>' . $this->dt($last) . '</FechaExpedicionFactura><Huella>' . $last['fingerprint'] .
 				'</Huella></RegistroAnterior>'
 			:
@@ -256,6 +256,7 @@ class verifactuXML {
 			$ikeys[numFmt($company, $invoice)] = $key;
 
 		$dt = (new DateTime())->format('c');
+
 		$xml = '<?xml version="1.0" encoding="UTF-8"?>
                         <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
                           xmlns:sum="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd"
@@ -270,13 +271,22 @@ class verifactuXML {
                                 </ObligadoEmision>
                               </sum:Cabecera>';
 
-		$last = $this->LastInvoice($company);
+		$chain = $this->LastInvoice($company);
+		if($chain)
+			$chain = ['numFmt' => numFmt($company, $chain), 'dt' => $chain['dt'], 'fingerprint' => $chain['fingerprint']];
+		else
+			$chain = null;
+
 		foreach ($invoices as $invoice) {
 
+			$fp = $this->Fingerprint($company, $invoice, $chain, $dt, $voided);
+			$invoice['_prev'] = $chain;
+			$chain = ['numFmt' => numFmt($company, $invoice), 'dt' => $invoice['dt'], 'fingerprint' => $fp];
+
 			if ($voided)
-				$xml.= $this->RegistroAnulacion($company, $invoice, $last, $dt);
+				$xml.= $this->RegistroAnulacion($company, $invoice, $invoice['_prev'], $dt);
 			else
-				$xml.= $this->RegistroAlta($company, $invoice, $last, $dt);
+				$xml.= $this->RegistroAlta($company, $invoice, $invoice['_prev'], $dt);
 		}
 
 		$xml.= '    </sum:RegFactuSistemaFacturacion>

@@ -1,7 +1,7 @@
 {
     "name": "verifactu-api-php",
     "description": "Sistema de facturas Veri*Factu con envío a la AEAT",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "author": {
         "name": "Eduardo Ruiz",
         "email": "eruiz@dataclick.es"
