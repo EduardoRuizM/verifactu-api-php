@@ -331,7 +331,7 @@ class verifactuXML {
 						$sql.= ', verifactu_csv = "' . addslashes(trim($invoice['verifactu_csv'] . "\n" . $csv)) . '"';
 
 					if ($timestampPresentacion)
-						$sql.= ', fingerprint = "' . $this->Fingerprint($company, $invoice, $last, $timestampPresentacion, $voided) . '"';
+						$sql.= ', fingerprint = "' . $this->Fingerprint($company, $invoice, $invoice['_prev'], $timestampPresentacion, $voided) . '"';
 
 					if (!$codError && $voided)
 						$sql.= ', voided = 1';
