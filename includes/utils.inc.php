@@ -1,6 +1,6 @@
 <?php
 //
-// =============== Veri*Factu API 1.0.5 ===============
+// =============== Veri*Factu API 1.0.6 ===============
 //
 // Copyright (c) 2025 Eduardo Ruiz <eruiz@dataclick.es>
 // https://github.com/EduardoRuizM/verifactu-api-php

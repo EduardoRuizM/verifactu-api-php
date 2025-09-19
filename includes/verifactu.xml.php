@@ -1,6 +1,6 @@
 <?php
 //
-// =============== Veri*Factu API 1.0.5 ===============
+// =============== Veri*Factu API 1.0.6 ===============
 //
 // Copyright (c) 2025 Eduardo Ruiz <eruiz@dataclick.es>
 // https://github.com/EduardoRuizM/verifactu-api-php
@@ -106,15 +106,18 @@ class verifactuXML {
 			if ($invoice['verifactu_stype'])
 				$xml.= '<TipoRectificativa>' . (($invoice['verifactu_stype'] == 'S') ? 'S' : 'I') . '</TipoRectificativa>';
 
-			$tag1 = ($invoice['verifactu_type'] == 'F3') ? '<FacturasSustituidas><IDFacturaSustituida>' : '<FacturasRectificadas><IDFacturaRectificada>';
-			$tag2 = ($invoice['verifactu_type'] == 'F3') ? '</IDFacturaSustituida></FacturasSustituidas>' : '</IDFacturaRectificada></FacturasRectificadas>';
+			$rinvoices = $this->db->query('SELECT * FROM invoices WHERE id = ? ORDER BY dt', [$invoice['invoice_ref_id']]);
+			if ($rinvoices && count($rinvoices)) {
 
-			$rinvoices = $this->db->query('SELECT * FROM invoices WHERE invoice_ref_id = ? ORDER BY dt', [$invoice['id']]);
-			foreach ($rinvoices as $rinvoice) {
+				$xml.= ($invoice['verifactu_type'] == 'F3') ? '<FacturasSustituidas>' : '<FacturasRectificadas>';
+				$tag = ($invoice['verifactu_type'] == 'F3') ? 'IDFacturaSustituida' : 'IDFacturaRectificada';
+				foreach ($rinvoices as $rinvoice) {
 
-				$xml.=	$tag1 . '<IDEmisorFactura>' . $this->cod($company['vat_id']) . '</IDEmisorFactura>' .
-					'<NumSerieFactura>' . numFmt($company, $rinvoice) . '</NumSerieFactura>' .
-					'<FechaExpedicionFactura>' . $this->dt($rinvoice) . '</FechaExpedicionFactura>' . $tag2;
+					$xml.=	'<' . $tag . '><IDEmisorFactura>' . $this->cod($company['vat_id']) . '</IDEmisorFactura>' .
+						'<NumSerieFactura>' . numFmt($company, $rinvoice) . '</NumSerieFactura>' .
+						'<FechaExpedicionFactura>' . $this->dt($rinvoice) . '</FechaExpedicionFactura></' . $tag . '>';
+				}
+				$xml.= ($invoice['verifactu_type'] == 'F3') ? '</FacturasSustituidas>' : '</FacturasRectificadas>';
 			}
 
 			if ($invoice['verifactu_stype'] == 'S') {
@@ -123,11 +126,11 @@ class verifactuXML {
 				$tvat_total = 0.0;
 				foreach ($rinvoices as $rinvoice) {
 
-					$lines = $this->db->query('SELECT vat, SUM(bi) AS bi, SUM(tvat) AS tvat FROM invoice_lines WHERE invoice_id = ? GROUP BY vat', [$rinvoice['id']]);
-					foreach ($lines as $line) {
+					$totals = $this->db->query('SELECT SUM(bi) AS bi, SUM(tvat) AS tvat FROM invoice_lines WHERE invoice_id = ?', [$rinvoice['id']]);
+					if ($totals && count($totals)) {
 
-						$bi_total+= floatval($line['bi']);
-						$tvat_total+= floatval($line['tvat']);
+						$bi_total+= floatval($totals[0]['bi']);
+						$tvat_total+= floatval($totals[0]['tvat']);
 					}
 				}
 

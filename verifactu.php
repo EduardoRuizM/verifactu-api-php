@@ -1,6 +1,6 @@
 <?php
 //
-// =============== Veri*Factu API 1.0.5 ===============
+// =============== Veri*Factu API 1.0.6 ===============
 //
 // Copyright (c) 2025 Eduardo Ruiz <eruiz@dataclick.es>
 // https://github.com/EduardoRuizM/verifactu-api-php
@@ -123,7 +123,7 @@ function getData() {
 	return $data;
 }
 
-function insertInvoice(&$db, &$verifactu, &$company, &$data, $type, $refs = null, $stype = null) {
+function insertInvoice(&$db, &$verifactu, &$company, &$data, $type, $ref = null, $stype = null) {
 
 	if (strtolower(getKey($_SERVER, 'CONTENT_TYPE')) !== 'application/json')
 		errResponse(415, 'Unsupported Media Type');
@@ -150,12 +150,12 @@ function insertInvoice(&$db, &$verifactu, &$company, &$data, $type, $refs = null
 		} else
 			errResponse(400, 'No invoice lines');
 
-		$invoice = $db->query('INSERT INTO invoices SET company_id = ?, dt = CURRENT_TIMESTAMP, num = ?, name = ?, vat_id = ?, address = ?, postal_code = ?, ' .
-			'city = ?, state = ?, country = ?, tvat = ?, bi = ?, total = ?, email = ?, ref = ?, comments = ?, verifactu_type = ?, verifactu_stype = ?',
+		$invoice = $db->query('INSERT INTO invoices SET company_id = ?, dt = CURRENT_TIMESTAMP, num = ?, name = ?, vat_id = ?, address = ?, postal_code = ?, city = ?, ' .
+			'state = ?, country = ?, tvat = ?, bi = ?, total = ?, email = ?, ref = ?, comments = ?, verifactu_type = ?, verifactu_stype = ?, invoice_ref_id = ?',
 			[$company['id'], nextNum($db, $company, $type), trim($data['name']), isset($data['vat_id']) ? $verifactu->cod($data['vat_id']) : null,
 			getKey($data, 'address', null), getKey($data, 'postal_code', null), getKey($data, 'city', null), getKey($data, 'state', null),
 			getKey($data, 'country', null), $tvat, $bi, $total, getKey($data, 'email', null), getKey($data, 'ref', null),
-			getKey($data, 'comments', null), $type, $stype]);
+			getKey($data, 'comments', null), $type, $stype, $ref]);
 
 		$id = lastId($db);
 
@@ -175,12 +175,6 @@ function insertInvoice(&$db, &$verifactu, &$company, &$data, $type, $refs = null
 			[$id, $num, $line['descr'], $line['units'], $line['price'], $line['vat'], $tvat, $bi, $total]);
 		}
 
-		if ($refs) {
-
-			foreach($refs as $ref)
-				$db->query('UPDATE invoices SET invoice_ref_id = ? WHERE id = ?', [$id, $ref['id']]);
-		}
-
 		okResponse(array('id' => $id), 201);
 
 	} catch(mysqli_sql_exception $e) {
@@ -197,20 +191,18 @@ if (apiPath('POST', 'invoices')) {
 
 if (($vars = apiPath('POST', 'invoices/:id/rect'))) {
 
-	if (!($id = getKey($vars, 'id')) || !preg_match('/^\d+(,\d+)*$/', $id))
+	if (!($id = getKey($vars, 'id')))
 		errResponse(404, 'Not found id(s)');
 
-	$invoices = $db->query('SELECT * FROM invoices WHERE id IN(?) AND company_id = ?', [$id, $company_id]);
-	foreach ($invoices as $invoice) {
+	$invoice = $db->query('SELECT * FROM invoices WHERE id = ? AND company_id = ?', [$id, $company_id]);
+	if ($invoice) {
 
-		if (!($invoice['verifactu_type'] == 'F1' || $invoice['verifactu_type'] == 'F2' || $invoice['verifactu_type'] == 'F3') || $invoice['invoice_ref_id'] || $invoice['voided'])
-			errResponse(401, 'Not type F1/F2/F3, already referenced or voided: ' . numFmt($company, $invoice));
-	}
-
-	if ($invoices) {
+		$invoice = $invoice[0];
+		if (!($invoice['verifactu_type'] == 'F1' || $invoice['verifactu_type'] == 'F2' || $invoice['verifactu_type'] == 'F3') || $invoice['voided'])
+			errResponse(401, 'Not exists, not type F1/F2/F3 or voided: ' . numFmt($company, $invoice));
 
 		$data = getData();
-		insertInvoice($db, $verifactu, $company, $data, isset($data['vat_id']) ? 'R1' : 'R5', $invoices, 'I');
+		insertInvoice($db, $verifactu, $company, $data, isset($data['vat_id']) ? 'R1' : 'R5', $invoice['id'], 'I');
 
 	} else
 		errResponse(404, 'Not found');
@@ -218,20 +210,18 @@ if (($vars = apiPath('POST', 'invoices/:id/rect'))) {
 
 if (($vars = apiPath('POST', 'invoices/:id/rect2'))) {
 
-	if (!($id = getKey($vars, 'id')) || !preg_match('/^\d+(,\d+)*$/', $id))
+	if (!($id = getKey($vars, 'id')))
 		errResponse(404, 'Not found id(s)');
 
-	$invoices = $db->query('SELECT * FROM invoices WHERE id IN(?) AND company_id = ?', [$id, $company_id]);
-	foreach ($invoices as $invoice) {
+	$invoice = $db->query('SELECT * FROM invoices WHERE id = ? AND company_id = ?', [$id, $company_id]);
+	if ($invoice) {
 
-		if (!($invoice['verifactu_type'] == 'F1' || $invoice['verifactu_type'] == 'F3') || $invoice['invoice_ref_id'] || $invoice['voided'])
-			errResponse(401, 'Not type F1/F3, already referenced or voided: ' . numFmt($company, $invoice));
-	}
-
-	if ($invoices) {
+		$invoice = $invoice[0];
+		if (!($invoice['verifactu_type'] == 'F1' || $invoice['verifactu_type'] == 'F3') || $invoice['voided'])
+			errResponse(401, 'Not exists, not type F1/F3 or voided: ' . numFmt($company, $invoice));
 
 		$data = getData();
-		insertInvoice($db, $verifactu, $company, $data, 'R2', $invoices, 'I');
+		insertInvoice($db, $verifactu, $company, $data, 'R2', $invoice['id'], 'I');
 
 	} else
 		errResponse(404, 'Not found');
@@ -239,20 +229,18 @@ if (($vars = apiPath('POST', 'invoices/:id/rect2'))) {
 
 if (($vars = apiPath('POST', 'invoices/:id/rectsust'))) {
 
-	if (!($id = getKey($vars, 'id')) || !preg_match('/^\d+(,\d+)*$/', $id))
+	if (!($id = getKey($vars, 'id')))
 		errResponse(404, 'Not found id(s)');
 
-	$invoices = $db->query('SELECT * FROM invoices WHERE id IN(?) AND company_id = ?', [$id, $company_id]);
-	foreach ($invoices as $invoice) {
+	$invoice = $db->query('SELECT * FROM invoices WHERE id = ? AND company_id = ?', [$id, $company_id]);
+	$invoice = $invoice[0];
+	if ($invoice) {
 
-		if ($invoice['verifactu_type'] == 'R2' || $invoice['invoice_ref_id'] || $invoice['voided'])
-			errResponse(401, 'Not type F1/F2/F3/R1/R5, already referenced or voided: ' . numFmt($company, $invoice));
-	}
-
-	if ($invoices) {
+		if ($invoice['verifactu_type'] == 'R2' || $invoice['voided'])
+			errResponse(401, 'Not exists, not type F1/F2/F3/R1/R5 or voided: ' . numFmt($company, $invoice));
 
 		$data = getData();
-		insertInvoice($db, $verifactu, $company, $data, isset($data['vat_id']) ? 'R1' : 'R5', $invoices, 'S');
+		insertInvoice($db, $verifactu, $company, $data, isset($data['vat_id']) ? 'R1' : 'R5', $invoice['id'], 'S');
 
 	} else
 		errResponse(404, 'Not found');
@@ -260,20 +248,18 @@ if (($vars = apiPath('POST', 'invoices/:id/rectsust'))) {
 
 if (($vars = apiPath('POST', 'invoices/:id/sust'))) {
 
-	if (!($id = getKey($vars, 'id')) || !preg_match('/^\d+(,\d+)*$/', $id))
+	if (!($id = getKey($vars, 'id')))
 		errResponse(404, 'Not found id(s)');
 
-	$invoices = $db->query('SELECT * FROM invoices WHERE id IN(?) AND company_id = ?', [$id, $company_id]);
-	foreach ($invoices as $invoice) {
+	$invoice = $db->query('SELECT * FROM invoices WHERE id = ? AND company_id = ?', [$id, $company_id]);
+	if ($invoice) {
 
-		if ($invoice['verifactu_type'] != 'F2' || $invoice['invoice_ref_id'] || $invoice['voided'])
-			errResponse(401, 'Not type F2, already referenced or voided: ' . numFmt($company, $invoice));
-	}
-
-	if ($invoices) {
+		$invoice = $invoice[0];
+		if ($invoice['verifactu_type'] != 'F2' || $invoice['voided'])
+			errResponse(401, 'Not exists, not type F2 or voided: ' . numFmt($company, $invoice));
 
 		$data = getData();
-		insertInvoice($db, $verifactu, $company, $data, 'F3', $invoices);
+		insertInvoice($db, $verifactu, $company, $data, 'F3', $invoice['id']);
 
 	} else
 		errResponse(404, 'Not found');
@@ -284,7 +270,7 @@ if (($vars = apiPath('PUT', 'invoices/:id/voided'))) {
 	if (!($id = getKey($vars, 'id')) || !preg_match('/^\d+(,\d+)*$/', $id))
 		errResponse(404, 'Not found id(s)');
 
-	$invoices = $db->query('SELECT * FROM invoices WHERE id = ? AND company_id = ?', [$id, $company_id]);
+	$invoices = $db->query('SELECT * FROM invoices WHERE id IN(?) AND company_id = ?', [$id, $company_id]);
 	foreach ($invoices as $invoice) {
 
 		if ($invoice['voided'] || !$invoice['verifactu_dt'] || $invoice['invoice_ref_id'])
