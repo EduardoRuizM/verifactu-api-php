@@ -8,7 +8,7 @@
   <a href="https://sede.agenciatributaria.gob.es/Sede/iva/sistemas-informaticos-facturacion-verifactu.html">Sistemas Informáticos de Facturación (SIF) y VERI✱FACTU</a>
 </p>
 
-<p align="center"><a href="https://github.com/EduardoRuizM/verifactu-api-python"><img src="https://raw.githubusercontent.com/EduardoRuizM/verifactu-api-python/main/logo.png" title="Veri*Factu API (Python)" width="256" height="50"></a> <a href="https://github.com/EduardoRuizM/verifactu-api-nodejs"><img src="https://raw.githubusercontent.com/EduardoRuizM/verifactu-api-nodejs/main/logo.png" title="Veri*F:actu API (NodeJS)" width="256" height="50"></a> <a href="https://github.com/EduardoRuizM/verifactu-api-php"><img src="https://raw.githubusercontent.com/EduardoRuizM/verifactu-api-php/main/logo.png" title="Veri*Factu API (PHP)" width="256" height="50"></a></p>
+<p align="center"><a href="https://github.com/EduardoRuizM/verifactu-api-python"><img src="https://raw.githubusercontent.com/EduardoRuizM/verifactu-api-python/main/logo.png" title="Veri*Factu API (Python)" width="256" height="50"></a> <a href="https://github.com/EduardoRuizM/verifactu-api-nodejs"><img src="https://raw.githubusercontent.com/EduardoRuizM/verifactu-api-nodejs/main/logo.png" title="Veri*F:actu API (NodeJS)" width="256" height="50"></a> <a href="https://github.com/EduardoRuizM/verifactu-api-php"><img src="https://raw.githubusercontent.com/EduardoRuizM/verifactu-api-php/main/logo.png" title="Veri*Factu API (PHP)" width="256" height="50"></a> <a href="https://github.com/EduardoRuizM/verifactu-api-go"><img src="https://raw.githubusercontent.com/EduardoRuizM/verifactu-api-go/main/logo.png" title="Veri*Factu API (Go)" width="256" height="50"></a></p>
 
 # [Veri*Factu API (PHP)](https://github.com/EduardoRuizM/verifactu-api-php "Veri*Factu API (PHP)")
 
@@ -47,6 +47,7 @@ Todas las empresas y profesionales obligados a expedir facturas deberán utiliza
 ### Versiones en otros lenguajes:
 - #### [Veri*Factu API (Python)](https://github.com/EduardoRuizM/verifactu-api-python "Veri*Factu API (Python)")
 - #### [Veri*Factu API (NodeJS)](https://github.com/EduardoRuizM/verifactu-api-nodejs "Veri*Factu API NodeJS")
+- #### [Veri*Factu API (Go)](https://github.com/EduardoRuizM/verifactu-api-go "Veri*Factu API Go")
 
 ## VeriFactu Pro:
 - #### 👉 Completo programa de gestión, facturación, ERP con clientes, gastos, productos, stock, OpenAPI/Swagger,  facturas VeriFactu y envío a la AEAT [VeriFactu Pro](https://verifactupro.es "VeriFactu Pro")
@@ -61,7 +62,7 @@ Todas las empresas y profesionales obligados a expedir facturas deberán utiliza
 - **R5**: Factura rectificativa en facturas simplificadas.
 - **S1**: Operaciones sujetas y no exentas - sin inversión del sujeto pasivo, facturas con IVA con identificación del emisor y el destinatario.
 - El envío a la AEAT se hace mediante un certificado **PKCS#12** de la FNMT de [persona física](https://www.sede.fnmt.gob.es/certificados/persona-fisica "persona física") o [persona jurídica](https://www.sede.fnmt.gob.es/certificados/certificado-de-representante/persona-juridica "persona jurídica").
-- Envío hasta el máximo permitido de 1000 facturas.
+- Envío cada vez hasta el máximo permitido de 1000 facturas.
 - Control de espera entre envíos según el TiempoEsperaEnvio facilitado por la AEAT.
 
 ## Identificación sistema informático
